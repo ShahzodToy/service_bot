@@ -9,7 +9,7 @@ DB_USER = getenv('DB_USER')
 DB_NAME = getenv('DB_NAME')
 DB_PASSWORD = getenv('DB_PASSWORD')
 DB_HOST = getenv('DB_HOST')
-DB_PORT = getenv('DB_PORT')
+DB_PORT = getenv('DB_PORT',5432)
 
 engine = create_async_engine(f"postgresql+asyncpg://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}")
 
