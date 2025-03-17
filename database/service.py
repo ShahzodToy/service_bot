@@ -40,7 +40,7 @@ async def get_service_by_name_keyboard(service_category:str, lang:str):
         row = []
         for i, service in enumerate(services):
             row.append(KeyboardButton(text = service.name))
-            if i % 2 == 0 or i == len(services):
+            if (i + 1) % 2 == 0 or i == len(services) - 1:
                 keyboard.append(row)
                 row = []  
     keyboard.append([KeyboardButton(text=__('⬅️ Back',lang))])
@@ -55,7 +55,7 @@ async def get_all_service_category_keyboard(lang:str):
         row = []
         for i, product in enumerate(products):
             row.append(KeyboardButton(text = product.name))
-            if i % 2 == 0 or i == len(products):
+            if (i + 1) % 2 == 0 or i == len(products) - 1:
                 keyboard.append(row)
                 row = []  
     keyboard.append([KeyboardButton(text=__('⬅️ Back',lang))])
@@ -70,7 +70,7 @@ async def get_all_service_category_keyboard_admin():
         row = []
         for i, product in enumerate(products):
             row.append(KeyboardButton(text = product.name))
-            if i % 2 == 0 or i == len(products):
+            if (i + 1) % 2 == 0 or i == len(products) - 1:
                 keyboard.append(row)
                 row = []  
     return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
