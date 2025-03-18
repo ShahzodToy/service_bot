@@ -5,13 +5,13 @@ from sqlalchemy import String, Integer, DateTime, Boolean, Column, ForeignKey, f
 from sqlalchemy.orm import DeclarativeBase, relationship
 from sqlalchemy.ext.asyncio import AsyncAttrs, AsyncSession, async_sessionmaker, create_async_engine
 
-DB_USER = getenv('DB_USER')
-DB_NAME = getenv('DB_NAME')
-DB_PASSWORD = getenv('DB_PASSWORD')
-DB_HOST = getenv('DB_HOST')
-DB_PORT = getenv('DB_PORT',5432)
+DB_USER = getenv('DB_USER','postgres')
+DB_NAME = getenv('DB_NAME','service_db')
+DB_PASSWORD = getenv('DB_PASSWORD','admin123')
+DB_HOST = getenv('DB_HOST','localhost')
+DB_PORT =int(getenv('DB_PORT',5432))
 
-engine = create_async_engine(f"postgresql+asyncpg://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}")
+engine = create_async_engine(f"postgresql+asyncpg://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}")
 
 async_session = async_sessionmaker(engine)
 
@@ -35,7 +35,9 @@ class ServiceCategory(Base):
     __tablename__ = 'service_category'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False, unique=True)
+    name_uz = Column(String, nullable=True, unique=True)
+    name_ru = Column(String)
+    name_en = Column(String)
 
     #relationship
     service = relationship('Service', back_populates='service_category')
@@ -45,8 +47,12 @@ class Service(Base):
     __tablename__ = 'service'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False, unique=True)
-    description = Column(String, nullable=True)
+    name_uz = Column(String, nullable=True, unique=True)
+    name_ru = Column(String)
+    name_en = Column(String)
+    description_uz = Column(String, nullable=True)
+    description_ru = Column(String, nullable=True)
+    description_en = Column(String, nullable=True)
     service_category_id = Column(ForeignKey('service_category.id', ondelete='CASCADE'))
 
     #relationships

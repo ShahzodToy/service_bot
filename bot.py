@@ -10,8 +10,7 @@ from aiogram.enums import ParseMode
 from handlers.main_handler import main_router
 from handlers.admin_handler import admin_router
 
-bot = Bot(token=getenv("BOT_TOKEN"))
-
+bot = Bot(token='token')
 
 dp = Dispatcher()
 

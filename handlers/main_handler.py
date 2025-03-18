@@ -10,6 +10,7 @@ from database import service
 from keyboards.reply import rp_keyboard
 from utils.transaltion import translate as __
 from utils.transaltion import translations
+from database import models
 
 
 main_router = Router()
@@ -112,7 +113,7 @@ async def get_all_orders(message:Message):
         return
     
     order_texts = [
-        f"📌 {translations['service_name'][user_.language]}: {order.service.name}\n"
+        f"📌 {translations['service_name'][user_.language]}: {getattr(order.service, f'name_{user_.language}', 'Unknown')}\n"
         f"👤 {translations['full_name'][user_.language]}: {order.full_name}\n"
         f"📞 {translations['phone_number'][user_.language]}: {order.phone_number}\n"
         f"📍 {translations['location'][user_.language]}: {order.location}\n"
@@ -133,8 +134,12 @@ async def get_all_service(message:Message, state:FSMContext):
 async def choose_order_way(message:Message, state:FSMContext):
     await state.update_data(service=message.text)
     user_ = await service.get_user_id(message.from_user.id)
-    service_data = await service.get_service_by_name(message.text)
-    await message.answer(service_data.description, reply_markup=rp_keyboard.order_way(user_.language))
+    service_data = await service.get_service_by_name(message.text,user_.language)
+    if service_data:
+        description = getattr(service_data, f"description_{user_.language}", "No description available")
+    else:
+        description = "Service not found."
+    await message.answer(description, reply_markup=rp_keyboard.order_way(user_.language))
     await state.set_state(OrderService.order_way)
 
 @main_router.message(OrderService.order_way, ~F.text.in_(['⬅️ Back','⬅️ Orqaga','⬅️ Назад']))
@@ -142,7 +147,7 @@ async def get_contact_phone(message:Message, state:FSMContext):
     await state.update_data(order_way=message.text)
     user_ = await service.get_user_id(message.from_user.id)
     if message.text in ['📞 Phone number','📞 Telefon raqami','📞 Номер телефона']:
-        await message.answer(__('Contact our poeple: +998949252945',user_.language), reply_markup=ReplyKeyboardRemove())
+        await message.answer(__('Contact our poeple: +998949252945',user_.language), reply_markup=rp_keyboard.main_menu(user_.language))
         await state.clear()
     else:
         await message.answer(__('Enter your full name',user_.language),reply_markup=rp_keyboard.back_keyboard(user_.language))
@@ -204,10 +209,10 @@ async def get_verify_order(message:Message, state:FSMContext):
 
     if message.text in ['❌ Cancel order','❌ Отменить заказ','❌ Buyurtmani bekor qilish']:
         await state.clear()
-        await message.answer(__('Order cancelled successfully',user.language), reply_markup=ReplyKeyboardRemove())
+        await message.answer(__('Order cancelled successfully',user.language), reply_markup=rp_keyboard.main_menu(user.language))
         return
     data = await state.get_data()
-    service_ = await service.get_service_by_name(data['service'])
+    service_ = await service.get_service_by_name(data['service'],user.language)
 
     await service.create_new_order(full_name=data['full_name'],
                                    phone_number=data['phone_number'],
@@ -231,6 +236,8 @@ async def language_settings(message:Message, state:FSMContext):
 
 @main_router.message(UserLangChange.lang)
 async def change_language_settings(message:Message,state:FSMContext):
+    user_lang = await service.get_user_id(user_id=message.from_user.id)
+    user = await service.change_language(telegram_id=message.from_user.id, lang=user_lang.language)
     languages = {
         '🇬🇧 English': "en",
         '🇺🇿 Uzbek': "uz",
@@ -239,8 +246,8 @@ async def change_language_settings(message:Message,state:FSMContext):
     if message.text not in languages:
         await message.answer(__("Please choose only one of the languages",user.language))
         return
-    user = await service.change_language(telegram_id=message.from_user.id, lang=languages[message.text])
-    await message.answer(__('Language updated successfully',user.language),reply_markup=rp_keyboard.main_menu(user.language))
+    user_ = await service.change_language(telegram_id=message.from_user.id, lang=languages[message.text])
+    await message.answer(__('Language updated successfully',user.language),reply_markup=rp_keyboard.main_menu(user_.language))
     await state.clear()
 
 @main_router.message(StateFilter('*', F.text.in_(['⬅️ Back','⬅️ Orqaga','⬅️ Назад'])))
@@ -248,9 +255,10 @@ async def back_previous(message:Message, state:FSMContext):
     current_state = await state.get_state()
     user = await service.get_user_id(user_id=message.from_user.id)
     if current_state == OrderService.service_category:
-        await message.answer(
-            __("You don't have previous step, just enter service category, or cancel it",user.language)
-        )
+        await message.answer(__("Welcome to our main page", user.language), 
+                             reply_markup=rp_keyboard.main_menu(user.language))
+        await state.clear()
+        
         return 
     previous = None
     for step in OrderService.__all_states__:

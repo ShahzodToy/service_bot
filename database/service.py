@@ -33,32 +33,58 @@ async def get_all_service(category_id: int):
     
 async def get_service_by_name_keyboard(service_category:str, lang:str):
     async with models.async_session() as session:
-        stmt = await session.execute(select(models.Service).join(models.ServiceCategory).where(models.ServiceCategory.name == service_category))
+        # service_category_lang = f'{service_category}_{lang}'
+        # stmt = await session.execute(select(models.Service).join(models.ServiceCategory).where(models.ServiceCategory.service_category_lang == service_category))
+        category_column = getattr(models.ServiceCategory, f'name_{lang}')
+        stmt = await session.execute(
+            select(models.Service)
+            .join(models.ServiceCategory)
+            .where(category_column == service_category)
+)
         services = stmt.scalars().all()
         
         keyboard = []
         row = []
         for i, service in enumerate(services):
-            row.append(KeyboardButton(text = service.name))
+            service_name = getattr(service, f'name_{lang}')
+            row.append(KeyboardButton(text=service_name))
             if (i + 1) % 2 == 0 or i == len(services) - 1:
                 keyboard.append(row)
                 row = []  
     keyboard.append([KeyboardButton(text=__('⬅️ Back',lang))])
     return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
     
-async def get_all_service_category_keyboard(lang:str):
+# async def get_all_service_category_keyboard(lang:str):
+#     async with models.async_session() as session:
+#         result = await session.execute(select(models.ServiceCategory))
+#         products = result.scalars().all()
+
+#         keyboard = []
+#         row = []
+#         for i, product in enumerate(products):
+#             row.append(KeyboardButton(text = product.name))
+#             if (i + 1) % 2 == 0 or i == len(products) - 1:
+#                 keyboard.append(row)
+#                 row = []  
+#     keyboard.append([KeyboardButton(text=__('⬅️ Back',lang))])
+#     return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
+async def get_all_service_category_keyboard(lang: str):
     async with models.async_session() as session:
         result = await session.execute(select(models.ServiceCategory))
-        products = result.scalars().all()
+        categories = result.scalars().all()  # Renamed 'products' to 'categories'
 
         keyboard = []
         row = []
-        for i, product in enumerate(products):
-            row.append(KeyboardButton(text = product.name))
-            if (i + 1) % 2 == 0 or i == len(products) - 1:
+        for i, category in enumerate(categories):
+            category_name = getattr(category, f'name_{lang}', None)  # Select correct language
+            if category_name:
+                row.append(KeyboardButton(text=category_name))
+
+            if (i + 1) % 2 == 0 or i == len(categories) - 1:
                 keyboard.append(row)
                 row = []  
-    keyboard.append([KeyboardButton(text=__('⬅️ Back',lang))])
+
+    keyboard.append([KeyboardButton(text=__('⬅️ Back', lang))])  # Add Back button
     return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
 
 async def get_all_service_category_keyboard_admin():
@@ -86,10 +112,14 @@ async def create_new_order(full_name:str, phone_number:str, location:str, servic
         session.add(new_order)
         await session.commit()
 
-async def get_service_by_name(name:str):
+async def get_service_by_name(name: str, lang: str):
     async with models.async_session() as session:
-        stmt = await session.execute(select(models.Service).where(models.Service.name == name))
-        service = stmt.scalar_one_or_none()
+        name_column = getattr(models.Service, f'name_{lang}', None)
+        if not name_column:
+            return None 
+
+        stmt = await session.execute(select(models.Service).where(name_column == name))
+        service = stmt.scalar_one_or_none()  
         return service
     
 async def get_all_order(telegram_id:int):
@@ -106,19 +136,28 @@ async def change_language(telegram_id:int, lang:str):
         user = result.scalar_one_or_none()
         return user
     
-async def get_category_service_name(name:str):
+async def get_category_service_name(name: str, lang: str):
     async with models.async_session() as session:
-        stmt = await session.execute(select(models.ServiceCategory).where(models.ServiceCategory.name == name))
+        name_column = getattr(models.ServiceCategory, f'name_{lang}', None)
+        if not name_column:
+            return None  # Invalid language
+
+        stmt = await session.execute(select(models.ServiceCategory).where(name_column == name))
         result = stmt.scalar_one_or_none()
         return result
-    
-async def create_category_service_name(name:str):
+
+# ✅ Create a new category in the specified language
+async def create_category_service_name(name: str, lang: str):
     async with models.async_session() as session:
-        new_category_service = models.ServiceCategory(
-            name=name
-        )
+        column_name = f'name_{lang}'
+        if not hasattr(models.ServiceCategory, column_name):
+            return None  # Invalid language
+
+        new_category_service = models.ServiceCategory(**{column_name: name})
         session.add(new_category_service)
         await session.commit()
+        await session.refresh(new_category_service)  # Sync with DB
+        return new_category_service
 
 async def create_new_service(name:str, category_id:int, description:str):
     async with models.async_session() as session:
