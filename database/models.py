@@ -72,5 +72,3 @@ class Order(Base):
     #relationship
     service = relationship('Service', back_populates='order')
     user = relationship('User', back_populates='order')
-
-

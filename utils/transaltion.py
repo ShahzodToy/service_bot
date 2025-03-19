@@ -76,9 +76,9 @@ def translate(text, lang):
             'en':'📞 Phone number'
         },
         'Contact our poeple: +998949252945':{
-            'ru':'Свяжитесь с нашими людьми +0348530583',
-            'uz':"Bizning odamlar bilan bog'laning +343534535",
-            'en':'Contact our poeple: +998949252945',
+            'ru':'Свяжитесь с нашими людьми: +998777070707',
+            'uz':"Bizning odamlar bilan bog'laning: +998777070707",
+            'en':'Contact our poeple: +998777070707',
         },
         '⬅️ Back':{
             'uz':'⬅️ Orqaga',
