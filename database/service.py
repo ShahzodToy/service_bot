@@ -33,8 +33,6 @@ async def get_all_service(category_id: int):
     
 async def get_service_by_name_keyboard(service_category:str, lang:str):
     async with models.async_session() as session:
-        # service_category_lang = f'{service_category}_{lang}'
-        # stmt = await session.execute(select(models.Service).join(models.ServiceCategory).where(models.ServiceCategory.service_category_lang == service_category))
         category_column = getattr(models.ServiceCategory, f'name_{lang}')
         stmt = await session.execute(
             select(models.Service)
@@ -54,23 +52,9 @@ async def get_service_by_name_keyboard(service_category:str, lang:str):
     keyboard.append([KeyboardButton(text=__('⬅️ Back',lang))])
     return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
     
-# async def get_all_service_category_keyboard(lang:str):
-#     async with models.async_session() as session:
-#         result = await session.execute(select(models.ServiceCategory))
-#         products = result.scalars().all()
-
-#         keyboard = []
-#         row = []
-#         for i, product in enumerate(products):
-#             row.append(KeyboardButton(text = product.name))
-#             if (i + 1) % 2 == 0 or i == len(products) - 1:
-#                 keyboard.append(row)
-#                 row = []  
-#     keyboard.append([KeyboardButton(text=__('⬅️ Back',lang))])
-#     return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
 async def get_all_service_category_keyboard(lang: str):
     async with models.async_session() as session:
-        result = await session.execute(select(models.ServiceCategory))
+        result = await session.execute(select(models.ServiceCategory).order_by(models.ServiceCategory.id))
         categories = result.scalars().all()  # Renamed 'products' to 'categories'
 
         keyboard = []

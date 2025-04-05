@@ -159,6 +159,16 @@ def translate(text, lang):
             "uz": "Iltimos, to'liq manzilingizni kiriting!!!",
             "en": "Please provide your full location!!!",
             "ru": "Пожалуйста, укажите ваш полный адрес!!!"
+        },
+        "O'lchovni kiriting":{
+            'uz':"O'lchovni kiriting",
+            'ru':"Введите размер",
+            'en':'Enter the measurement'
+        },
+        'Narxi:':{
+            'uz':'Narxi:',
+            "ru":"Цена:",
+            "en":"Price:"
         }
 
     }

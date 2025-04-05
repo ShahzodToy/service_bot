@@ -53,6 +53,8 @@ class Service(Base):
     description_uz = Column(String, nullable=True)
     description_ru = Column(String, nullable=True)
     description_en = Column(String, nullable=True)
+    calculate = Column(Boolean, default=False)
+    price = Column(String, default=None)
     service_category_id = Column(ForeignKey('service_category.id', ondelete='CASCADE'))
 
     #relationships

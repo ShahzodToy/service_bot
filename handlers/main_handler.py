@@ -24,6 +24,7 @@ class UserLangChange(StatesGroup):
 class OrderService(StatesGroup):
     service_category = State()
     service = State()
+    calculate = State()
     order_way = State()
     full_name = State()
     phone_number = State()
@@ -139,7 +140,21 @@ async def choose_order_way(message:Message, state:FSMContext):
         description = getattr(service_data, f"description_{user_.language}", "No description available")
     else:
         description = "Service not found."
-    await message.answer(description, reply_markup=rp_keyboard.order_way(user_.language))
+    if service_data.calculate:
+        await message.answer(__("O'lchovni kiriting",user_.language),reply_markup=ReplyKeyboardRemove())
+        await state.set_state(OrderService.calculate)
+    else:
+        await message.answer(description, reply_markup=rp_keyboard.order_way(user_.language))
+        await message.answer(__('Narxi:',user_.language)+str(service_data.price), reply_markup=rp_keyboard.order_way(user_.language))
+        await state.set_state(OrderService.order_way)
+
+@main_router.message(OrderService.calculate, ~F.text.in_(['⬅️ Back','⬅️ Orqaga','⬅️ Назад']))
+async def calculate_price_service(message:Message, state:FSMContext):
+    user_ = await service.get_user_id(message.from_user.id)
+    service_name = await state.get_data()
+    service_data = await service.get_service_by_name(service_name['service'],user_.language)
+    calculation = int(service_data.price) * int(message.text) 
+    await message.answer(__('Narxi:',user_.language)+str(calculation),reply_markup=rp_keyboard.order_way(user_.language))
     await state.set_state(OrderService.order_way)
 
 @main_router.message(OrderService.order_way, ~F.text.in_(['⬅️ Back','⬅️ Orqaga','⬅️ Назад']))
