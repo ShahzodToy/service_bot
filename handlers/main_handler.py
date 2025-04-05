@@ -154,6 +154,11 @@ async def calculate_price_service(message:Message, state:FSMContext):
     service_name = await state.get_data()
     service_data = await service.get_service_by_name(service_name['service'],user_.language)
     calculation = int(service_data.price) * int(message.text) 
+    if service_data:
+        description = getattr(service_data, f"description_{user_.language}", "No description available")
+    else:
+        description = "Service not found."
+    await message.answer(description, reply_markup=rp_keyboard.order_way(user_.language))
     await message.answer(__('Narxi:',user_.language)+str(calculation),reply_markup=rp_keyboard.order_way(user_.language))
     await state.set_state(OrderService.order_way)
 

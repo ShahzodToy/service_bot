@@ -161,7 +161,7 @@ def translate(text, lang):
             "ru": "Пожалуйста, укажите ваш полный адрес!!!"
         },
         "O'lchovni kiriting":{
-            'uz':"O'lchovni kiriting",
+            'uz':"Sizda qancha maydon bor",
             'ru':"Введите размер",
             'en':'Enter the measurement'
         },
