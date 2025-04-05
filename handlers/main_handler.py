@@ -140,11 +140,11 @@ async def choose_order_way(message:Message, state:FSMContext):
         description = getattr(service_data, f"description_{user_.language}", "No description available")
     else:
         description = "Service not found."
+    await message.answer(description, reply_markup=rp_keyboard.order_way(user_.language))
     if service_data.calculate:
         await message.answer(__("O'lchovni kiriting",user_.language),reply_markup=ReplyKeyboardRemove())
         await state.set_state(OrderService.calculate)
     else:
-        await message.answer(description, reply_markup=rp_keyboard.order_way(user_.language))
         await message.answer(__('Narxi:',user_.language)+str(service_data.price), reply_markup=rp_keyboard.order_way(user_.language))
         await state.set_state(OrderService.order_way)
 
