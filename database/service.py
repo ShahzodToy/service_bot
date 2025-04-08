@@ -38,6 +38,7 @@ async def get_service_by_name_keyboard(service_category:str, lang:str):
             select(models.Service)
             .join(models.ServiceCategory)
             .where(category_column == service_category)
+            .order_by(models.Service.created_time)
 )
         services = stmt.scalars().all()
         

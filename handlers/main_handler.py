@@ -42,6 +42,11 @@ class OrderService(StatesGroup):
             "uz": "Xizmat turini tanlang:",
             "ru": "Выберите тип услуги:"
         },
+        "OrderService:calculate":{
+            'uz':"Sizda qancha maydon bor",
+            'ru':"Введите размер",
+            'en':'Enter the measurement'
+        },
         "OrderService:order_way": {
             "en": "Choose the way of communication",
             "uz": "Aloqa usulini tanlang",
@@ -286,6 +291,13 @@ async def back_previous(message:Message, state:FSMContext):
                 keyboard = await service.get_service_by_name_keyboard(user_data.get("service_category"),user.language)
             elif previous == OrderService.order_way:
                 keyboard = rp_keyboard.order_way(user.language)
+            elif previous == OrderService.calculate:
+                user_data = await state.get_data()
+                if user_data.get('calculate', False):
+                    keyboard = rp_keyboard.back_keyboard(user.language)
+                else:
+                    keyboard = await service.get_service_by_name_keyboard(user_data.get("service_category"),user.language)
+                    previous = OrderService.service
             elif previous == OrderService.full_name:
                 keyboard = rp_keyboard.back_keyboard(user.language)
             elif previous == OrderService.phone_number:
@@ -296,9 +308,10 @@ async def back_previous(message:Message, state:FSMContext):
                 keyboard = rp_keyboard.verify_order_keyboard(user.language)
             else:
                 keyboard = ReplyKeyboardRemove()
+
             await message.answer(
-                f"{OrderService.texts[previous.state][user.language]}", reply_markup=keyboard
-            )
+                    f"{OrderService.texts[previous.state][user.language]}", reply_markup=keyboard
+                )
             return 
         previous = step
 
